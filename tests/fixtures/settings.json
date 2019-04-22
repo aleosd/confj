@@ -1,0 +1,23 @@
+{
+  "some_int": 13,
+  "some_bool": true,
+  "some_string": "string_value",
+  "some_array": [13, "string", false],
+  "some_none": null,
+  "some_nested_dict": {
+    "port": 5432,
+    "host": "localhost"
+  },
+  "array_of_objects": [
+    {
+      "id": 1,
+      "name": "obj1"
+    }, {
+      "id": 2,
+      "name": "obj2"
+    }, {
+      "id": 3,
+      "name": "obj3"
+    }
+  ]
+}
