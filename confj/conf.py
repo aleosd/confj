@@ -30,6 +30,11 @@ class ConfigData:
     def c_keys(self):
         return sorted(list(self._data.keys()))
 
+    def c_items(self):
+        if isinstance(self._data, dict):
+            return self._data.items()
+        raise ConfigException('Called "c_items" on non-dict config option')
+
 
 class Config(ConfigData):
     def load(self, config_path=None):

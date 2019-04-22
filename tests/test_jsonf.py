@@ -79,3 +79,27 @@ def test_data_types(config):
     for i, obj in enumerate(config.array_of_objects):
         idx = i + 1
         assert obj == {"id": idx, "name": "obj{}".format(idx)}
+
+
+@pytest.mark.parametrize('config', conf_params)
+def test_items_access(config):
+    for option, value in config.c_items():
+        if option == 'some_int':
+            assert value == 13
+        if option == 'some_bool':
+            assert value is True
+        if option == 'some_none':
+            assert value is None
+        if option == 'some_string':
+            assert value == "string_value"
+        if option == 'some_array':
+            assert value == [13, "string", False]
+        if option == 'some_nested_dict':
+            assert value == {
+                "port": 5432,
+                "host": "localhost"
+            }
+        if option == 'array_of_objects':
+            for i, obj in enumerate(value):
+                idx = i + 1
+                assert obj == {"id": idx, "name": "obj{}".format(idx)}
