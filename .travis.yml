@@ -2,11 +2,18 @@ language: python
 sudo: required
 dist: xenial
 python:
-  - "3.5"
-  - "3.6"
-  - "3.7"
+- '3.5'
+- '3.6'
+- '3.7'
 install:
-  - pip install -r requirements-dev.txt
+- pip install -r requirements-dev.txt
 script:
-  - pytest
-  - pylint ./confj
+- pytest
+- pylint ./confj
+deploy:
+  provider: pypi
+  user: aleosd
+  password:
+    secure: ZBT6VI7Owqxh2yghkiQU8A2hMJ0JSe84JdZ+bhrWcMtwj50i+rCJsVRnKprxSE6RsARwbFRk8M0uuyJE9+nz9ZPCN8gpYj7PLuG8Uw7RngjG2gU8h0Muo4iVaqAPTVIE2ZseAW1ZFa6JMvzCQF79TZ3diec5EqosinWa4TPc2euvd/SzsWbM3zqf4nfjE5w2ZAIhPNgQLU60FyyHRu4af+RWgxbrEQHmHT3uDgTlLSpR8eIRWbgizT84hOYTRMuZEh2NSJ8dgFYXoJxyByReRNbQcaY9vmyoDDq1pVu/dFYT0mTBe1MtpC+aTPX5sS1txbqA7LHmHSArwxPuh2t3tJ9gvQ8FGvSH9KkCc7D/cz2KQy8nTjsHzRFRYapF6SkBkPt6JnDXf4F0fIxVlAyD7yQIis5lUipknX83c+23ik8rw7C+hfViRuHZXxKw5eKU6Yex68i6ZzclamYMSWpSWRBPUtn3DxmpiTU/kigBHLi2RyS3bJ1KGOocVNGlN4xLg/2lKthhEDtuRQlFeLTll++/w1I3MDr+s6J00rF86uQzenCO2lLOyEZOfGAUDbSzxp7sH0GmLhO+73D4iSSwY8xvFH6t630N7K2ND1nvTKzeyVyWHk9oQ5u1bzDghxlbb0PhB9qce482RH9OIx923bIpHEEL6AFhRB3fUZxP180=
+  on:
+    tags: true
