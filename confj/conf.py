@@ -72,8 +72,12 @@ class Config(ConfigData):
     def _load_from_dir(self, dir_path: pathlib.Path):
         for file in dir_path.iterdir():
             config_name = file.stem
-            config_data = json.loads(file.read_text())
-            self.add_subconfig(config_name, config_data)
+            file_contents = file.read_text()
+            if not file_contents.strip():
+                self._data[config_name] = ''
+            else:
+                config_data = json.loads(file.read_text())
+                self.add_subconfig(config_name, config_data)
 
     def add_subconfig(self, name, config_data):
         if name in self._data:
