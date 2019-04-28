@@ -36,7 +36,8 @@ def file_config():
 
 
 def test_config_dir_load(dir_config):
-    assert list(dir_config.c_keys()) == ['projects', 'secrets', 'settings']
+    assert list(dir_config.c_keys()) == [
+        'empty', 'projects', 'secrets', 'settings']
     assert list(dir_config.secrets.c_keys()) == ['password', 'user']
 
 
@@ -127,4 +128,8 @@ def test_select_config_path():
 def test_autoload():
     path = str(pathlib.Path(__file__).parent / 'fixtures')
     config = Config(default_config_path=path, autoload=True)
-    assert list(config.c_keys()) == ['projects', 'secrets', 'settings']
+    assert list(config.c_keys()) == ['empty', 'projects', 'secrets', 'settings']
+
+
+def test_empty(dir_config):
+    assert dir_config.empty == ''
