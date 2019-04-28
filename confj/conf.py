@@ -1,9 +1,11 @@
 import json
 import os
 import pathlib
+from typing import Optional
 
 from .exceptions import ConfigLoadException, NoConfigOptionError, \
     ConfigException
+from . import const
 
 
 class ConfigData:
@@ -37,18 +39,32 @@ class ConfigData:
 
 
 class Config(ConfigData):
+    def __init__(self, default_config_path=None, autoload=False):
+        super(Config, self).__init__()
+        self.default_config_path = default_config_path
+        if autoload:
+            self.load()
+
     def load(self, config_path=None):
-        if config_path is None:
-            config_path = os.environ.get('JSON_CONFIG_PATH')
-        path = pathlib.Path(config_path)
+        path = pathlib.Path(self._select_config_path(config_path))
         if not path.exists():
-            raise ConfigLoadException('Path "{}" does not exist'.format(
-                config_path))
+            raise ConfigLoadException('Path "{}" does not exist'.format(path))
         if path.is_dir():
             return self._load_from_dir(path)
         if path.is_file():
             return self._load_from_file(path)
-        raise ConfigLoadException('Expected path to be file or directory')
+        raise ConfigLoadException('Expected path {} to be file or '
+                                  'directory'.format(path))
+
+    def _select_config_path(self, config_path: Optional[str] = None) -> str:
+        if config_path:
+            return config_path
+        if self.default_config_path:
+            return self.default_config_path
+        env_config_path = os.environ.get(const.ENV_CONF_PATH_NAME)
+        if env_config_path:
+            return env_config_path
+        raise ConfigException('Please provide path to load config from')
 
     def _load_from_file(self, file_path):
         self._data = json.loads(file_path.read_text())
@@ -56,8 +72,12 @@ class Config(ConfigData):
     def _load_from_dir(self, dir_path: pathlib.Path):
         for file in dir_path.iterdir():
             config_name = file.stem
-            config_data = json.loads(file.read_text())
-            self.add_subconfig(config_name, config_data)
+            file_contents = file.read_text()
+            if not file_contents.strip():
+                self._data[config_name] = ''
+            else:
+                config_data = json.loads(file.read_text())
+                self.add_subconfig(config_name, config_data)
 
     def add_subconfig(self, name, config_data):
         if name in self._data:

@@ -1,9 +1,11 @@
+import os
 import pathlib
 
 import pytest
 
 from confj import Config
-from confj.exceptions import NoConfigOptionError
+from confj import const
+from confj.exceptions import NoConfigOptionError, ConfigException
 
 
 def get_dir_conf():
@@ -34,7 +36,8 @@ def file_config():
 
 
 def test_config_dir_load(dir_config):
-    assert list(dir_config.c_keys()) == ['projects', 'secrets', 'settings']
+    assert list(dir_config.c_keys()) == [
+        'empty', 'projects', 'secrets', 'settings']
     assert list(dir_config.secrets.c_keys()) == ['password', 'user']
 
 
@@ -103,3 +106,30 @@ def test_items_access(config):
             for i, obj in enumerate(value):
                 idx = i + 1
                 assert obj == {"id": idx, "name": "obj{}".format(idx)}
+
+
+def test_select_config_path():
+    config = Config(default_config_path='./fixtures')
+    assert config._select_config_path() == './fixtures'
+
+    config = Config()
+    assert config._select_config_path('param_path') == 'param_path'
+
+    os.environ[const.ENV_CONF_PATH_NAME] = 'env_config_path'
+    config = Config()
+    assert config._select_config_path() == 'env_config_path'
+    del os.environ[const.ENV_CONF_PATH_NAME]
+
+    config = Config()
+    with pytest.raises(ConfigException):
+        config._select_config_path()
+
+
+def test_autoload():
+    path = str(pathlib.Path(__file__).parent / 'fixtures')
+    config = Config(default_config_path=path, autoload=True)
+    assert list(config.c_keys()) == ['empty', 'projects', 'secrets', 'settings']
+
+
+def test_empty(dir_config):
+    assert dir_config.empty == ''
