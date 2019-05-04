@@ -1,0 +1,22 @@
+[{
+  "name": "Project1",
+  "id": 1,
+  "data": {
+    "key1": "value1",
+    "key2": "value2"
+  }
+}, {
+  "name": "Project2",
+  "id": 2,
+  "data": {
+    "key1": "value1",
+    "key2": "value2"
+  }
+}, {
+  "name": "Project3",
+  "id": 3,
+  "data": {
+    "key1": "value1",
+    "key2": "value2"
+  }
+}]
