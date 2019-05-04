@@ -6,6 +6,7 @@ parsed and stored into config object, allowing attribute-based access to
 different options.
 
 [![Build Status](https://travis-ci.com/aleosd/confj.svg?branch=master)](https://travis-ci.com/aleosd/confj)
+[![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/aleosd)
 
 ## Installation
 
@@ -45,10 +46,41 @@ from confj import Config
 config = Config(default_config_path='/path/to/config', autoload=True)
 ```
 
+After config is loaded, it's options are accessible via attributes of `config`
+object, ot `dict`-like syntax:
+
+```python
+>>> config.username
+'user'
+
+>>> config['username']
+'user'
+
+>>> config.get('username')
+'user'
+
+``` 
+
+Please, take a note, that attribute-like access is available only for first-level
+config options. If you store a lot of nested objects in your json config,
+they'll be represented as simple dict objects, without special methods.
+
 ### Config search precedence
 
-If you directly call `load` method with `config_path` passed as parameter, then
-this path is used. If no `config_path` provided or `autoload` option was used,
-then `default_config_path` from initialization step is used. The last option is
+1. If you directly call `load` method with `config_path` passed as parameter, then
+this path is used.
+2. If no `config_path` provided or `autoload` option was used,
+then `default_config_path` from initialization step is used.
+3. The last option is
 to set `JSON_CONFIG_PATH` environment value. If the search is failed on all
 three steps, then `ConfigException` is raised.
+
+### Available methods
+
+All `config` object's method names are starting with `c_`, to avoid possible
+clash with possible config options
+
+* `c_key` returns sorted list of available config options (keys)
+* `c_items` returns iterator of key, value - config options and it's values. It
+is just a proxy to `items` method of python dictionary. If config structure is
+not a dictionary, than `ConfigException` is raised.
