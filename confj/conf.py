@@ -65,6 +65,22 @@ class ConfigData:
         import pprint
         return pprint.pprint(self.c_data(), indent=2)
 
+    def c_validate(self, schema, do_raise=False):
+        try:
+            from jsonschema import validate, ValidationError
+        except ImportError:
+            raise ImportError(
+                'Cannot find "jsonschema" package. Either install it manually '
+                'with pip, or install confj with validation option: '
+                'pip install confj[validation]')
+        try:
+            validate(self.c_data(), schema)
+            return True
+        except ValidationError:
+            if do_raise:
+                raise
+            return False
+
 
 class Config(ConfigData):
     def __init__(self, default_config_path=None, autoload=False):
