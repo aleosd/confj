@@ -84,3 +84,49 @@ clash with possible config options
 * `c_items` returns iterator of key, value - config options and it's values. It
 is just a proxy to `items` method of python dictionary. If config structure is
 not a dictionary, than `ConfigException` is raised.
+
+### Validation
+
+Config must be a valid json object, so we can validate it against provided
+json schema. To use config validation `jsonschema` package must be installed.
+It might be done as a separate step as
+
+```bash
+pip install jsonschema
+```
+
+or during `confj` installation time:
+
+```bash
+pip install confj[validation]
+```
+
+Then config validation can be done with `c_validate` method:
+
+```python
+from confj import Config
+
+config = Config(default_config_path='/path/to/config', autoload=True)
+schema = {"type": "object"}
+is_valid = config.c_validate(schema)
+```
+
+By default `c_validate` will return either `True` of `False`. To see actual
+validation error just pass `do_raise=True` as additional parameter, and catch
+`ValidationError` later:
+
+```python
+from confj import Config
+from jsonschema import ValidationError
+
+config = Config(default_config_path='/path/to/config', autoload=True)
+schema = {"type": "object"}
+
+try:
+    config.c_validate(schema, do_raise=True)
+except ValidationError as err:
+    print(f'Looks like config is invalid: {err}')
+```
+
+To read more on json validation one can at
+[json-schema.org](https://json-schema.org/understanding-json-schema/index.html)
