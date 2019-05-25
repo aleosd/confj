@@ -1,6 +1,7 @@
 import os
 import pathlib
 
+from jsonschema import ValidationError
 import pytest
 
 from confj import Config
@@ -178,3 +179,47 @@ def test_config_format(dir_config):
   'some_none': None,
   'some_string': 'string_value'}"""
     assert dir_config.settings.c_format() == settings_pformat
+
+
+@pytest.mark.parametrize('schema,do_raise,result', [
+    ({}, False, True),
+    (True, False, True),
+    ({
+        "type": "object",
+        "properties": {
+            "some_int": {"type": "integer"},
+            "some_bool": {"type": "boolean"},
+            "some_string": {"type": "string"},
+            "some_array": {"type": "array"},
+            "some_none": {"type": "null"},
+            "some_nested_dict": {"type": "object"},
+            "some_array_of_objects": {
+                "type": "array", "items": {"type": "object"}
+            },
+        }
+    }, False, True),
+    ({
+        "type": "object",
+        "properties": {
+            "some_int": {"type": "string"},
+            "some_bool": {"type": "boolean"},
+            "some_string": {"type": "string"},
+        }
+    }, False, False),
+    ({
+         "type": "object",
+         "properties": {
+             "some_int": {"type": "string"},
+             "some_bool": {"type": "boolean"},
+             "some_string": {"type": "string"},
+         }
+     }, True, False),
+    (False, False, False),
+    (False, True, False),
+])
+def test_validation(file_config, schema, do_raise, result):
+    if do_raise:
+        with pytest.raises(ValidationError):
+            file_config.c_validate(schema, do_raise=True)
+    else:
+        assert file_config.c_validate(schema) is result
