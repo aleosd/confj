@@ -23,6 +23,26 @@ class ConfigData:
         except KeyError:
             raise NoConfigOptionError('No such config option: {}'.format(key))
 
+    def c_data(self):
+        container = None
+        if isinstance(self._data, dict):
+            container = dict()
+            for key, value in self._data.items():
+                if isinstance(value, ConfigData):
+                    container[key] = value.c_data()
+                else:
+                    container[key] = value
+        if isinstance(self._data, list):
+            container = []
+            for value in self._data:
+                if isinstance(value, ConfigData):
+                    container.append(value.c_data())
+                else:
+                    container.append(value)
+        if container is None:
+            container = self._data
+        return container
+
     def get(self, key, default=None):
         try:
             return self.__getitem__(key)
@@ -36,6 +56,30 @@ class ConfigData:
         if isinstance(self._data, dict):
             return self._data.items()
         raise ConfigException('Called "c_items" on non-dict config option')
+
+    def c_format(self):
+        import pprint
+        return pprint.pformat(self.c_data(), indent=2)
+
+    def c_pprint(self):
+        import pprint
+        return pprint.pprint(self.c_data(), indent=2)
+
+    def c_validate(self, schema, do_raise=False):
+        try:
+            from jsonschema import validate, ValidationError
+        except ImportError:
+            raise ImportError(
+                'Cannot find "jsonschema" package. Either install it manually '
+                'with pip, or install confj with validation option: '
+                'pip install confj[validation]')
+        try:
+            validate(self.c_data(), schema)
+            return True
+        except ValidationError:
+            if do_raise:
+                raise
+            return False
 
 
 class Config(ConfigData):
@@ -71,6 +115,8 @@ class Config(ConfigData):
 
     def _load_from_dir(self, dir_path: pathlib.Path):
         for file in dir_path.iterdir():
+            if not file.is_file():
+                continue
             config_name = file.stem
             file_contents = file.read_text()
             if not file_contents.strip():

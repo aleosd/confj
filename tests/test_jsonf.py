@@ -1,6 +1,7 @@
 import os
 import pathlib
 
+from jsonschema import ValidationError
 import pytest
 
 from confj import Config
@@ -9,14 +10,15 @@ from confj.exceptions import NoConfigOptionError, ConfigException
 
 
 def get_dir_conf():
-    path = pathlib.Path(__file__).parent / 'fixtures'
+    path = pathlib.Path(__file__).parent / 'fixtures' / 'valid_conf'
     config = Config()
     config.load(path)
     return config
 
 
 def get_file_conf():
-    path = pathlib.Path(__file__).parent / 'fixtures' / 'settings.json'
+    path = pathlib.Path(__file__).parent / 'fixtures' / 'valid_conf' / \
+           'settings.json'
     config = Config()
     config.load(path)
     return config
@@ -126,10 +128,98 @@ def test_select_config_path():
 
 
 def test_autoload():
-    path = str(pathlib.Path(__file__).parent / 'fixtures')
+    path = str(pathlib.Path(__file__).parent / 'fixtures' / 'valid_conf')
     config = Config(default_config_path=path, autoload=True)
     assert list(config.c_keys()) == ['empty', 'projects', 'secrets', 'settings']
 
 
 def test_empty(dir_config):
     assert dir_config.empty == ''
+
+
+def test_config_data(dir_config):
+    assert dir_config.secrets.c_data() == {
+        'user': 'username',
+        'password': 'password',
+    }
+    assert dir_config.projects.c_data() == [{
+      "name": "Project1",
+      "id": 1,
+      "data": {
+        "key1": "value1",
+        "key2": "value2"
+      }
+    }, {
+      "name": "Project2",
+      "id": 2,
+      "data": {
+        "key1": "value1",
+        "key2": "value2"
+      }
+    }, {
+      "name": "Project3",
+      "id": 3,
+      "data": {
+        "key1": "value1",
+        "key2": "value2"
+      }
+    }]
+
+
+def test_config_format(dir_config):
+    assert dir_config.secrets.c_format() == "{'password': 'password', " \
+                                            "'user': 'username'}"
+    settings_pformat = """{ 'array_of_objects': [ {'id': 1, 'name': 'obj1'},
+                        {'id': 2, 'name': 'obj2'},
+                        {'id': 3, 'name': 'obj3'}],
+  'some_array': [13, 'string', False],
+  'some_bool': True,
+  'some_int': 13,
+  'some_nested_dict': {'host': 'localhost', 'port': 5432},
+  'some_none': None,
+  'some_string': 'string_value'}"""
+    assert dir_config.settings.c_format() == settings_pformat
+
+
+@pytest.mark.parametrize('schema,do_raise,result', [
+    ({}, False, True),
+    (True, False, True),
+    ({
+        "type": "object",
+        "properties": {
+            "some_int": {"type": "integer"},
+            "some_bool": {"type": "boolean"},
+            "some_string": {"type": "string"},
+            "some_array": {"type": "array"},
+            "some_none": {"type": "null"},
+            "some_nested_dict": {"type": "object"},
+            "some_array_of_objects": {
+                "type": "array", "items": {"type": "object"}
+            },
+        }
+    }, False, True),
+    ({
+        "type": "object",
+        "properties": {
+            "some_int": {"type": "string"},
+            "some_bool": {"type": "boolean"},
+            "some_string": {"type": "string"},
+        }
+    }, False, False),
+    ({
+         "type": "object",
+         "properties": {
+             "some_int": {"type": "string"},
+             "some_bool": {"type": "boolean"},
+             "some_string": {"type": "string"},
+         }
+     }, True, False),
+    (False, False, False),
+    (False, True, False),
+])
+def test_validation(file_config, schema, do_raise, result):
+    if do_raise:
+        with pytest.raises(ValidationError):
+            file_config.c_validate(schema, do_raise=True)
+    else:
+        assert file_config.c_validate(schema) is result
