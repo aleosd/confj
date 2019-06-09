@@ -1,4 +1,4 @@
-# jconf
+# ConfJ
 
 Package is used to load config from json files. Path to config can lead either
 to directory with a bunch of json files, or to a single json file. Contents is
@@ -80,10 +80,15 @@ three steps, then `ConfigException` is raised.
 All `config` object's method names are starting with `c_`, to avoid possible
 clash with possible config options
 
-* `c_key` returns sorted list of available config options (keys)
+* `c_key` returns sorted list of available config options (keys);
 * `c_items` returns iterator of key, value - config options and it's values. It
 is just a proxy to `items` method of python dictionary. If config structure is
-not a dictionary, than `ConfigException` is raised.
+not a dictionary, than `ConfigException` is raised;
+* `c_data` returns python data structure representing config;
+* `c_format` returns pretty formatted sting representing config;
+* `c_pprint` outputs formatted config to stdout;
+* `c_validate` validates config against given json schema. See `Validation`
+section below.
 
 ### Validation
 
