@@ -228,3 +228,11 @@ def test_validation(file_config, schema, do_raise, result):
 
 def test_value_unpacking(dir_config):
     assert dict(**dir_config) == dir_config
+
+
+def test_keys(dir_config):
+    assert dir_config.keys()
+    assert dir_config.settings.keys()
+
+    with pytest.raises(AttributeError):
+        _ = dir_config.projects.keys()

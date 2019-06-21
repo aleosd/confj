@@ -11,23 +11,25 @@ from .exceptions import ConfigLoadException, NoConfigOptionError, \
 class ObjectEncoder(json.JSONEncoder):
     def encode(self, o):
         if isinstance(o, ConfigData):
+            # pylint: disable=W0212
             return json.dumps(o._data)
-        else:
-            return super(ObjectEncoder, self).encode(o)
+        return super(ObjectEncoder, self).encode(o)
 
 
 class ConfigData(dict):
     def __init__(self, data=None):
         self._data = data or dict()
+        super(ConfigData, self).__init__()
 
     def __getattr__(self, item: str):
         if item in self._data:
             if isinstance(self._data[item], ConfigData):
                 return self._data[item]
+
             if isinstance(self._data[item], dict):
                 return ConfigData(self._data[item])
-            else:
-                return self._data[item]
+
+            return self._data[item]
         raise NoConfigOptionError('No such config option: {}'.format(item))
 
     def __getitem__(self, key):
@@ -53,8 +55,7 @@ class ConfigData(dict):
             yield i
 
     def keys(self):
-        if isinstance(self._data, dict):
-            return sorted(list(self._data.keys()))
+        return sorted(list(self._data.keys()))
 
     def get(self, key, default=None):
         try:
