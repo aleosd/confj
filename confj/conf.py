@@ -48,6 +48,10 @@ class ConfigData(dict):
     def __str__(self):
         return json.dumps(self._data, cls=ObjectEncoder)
 
+    def __iter__(self):
+        for i in self.keys():
+            yield i
+
     def keys(self):
         if isinstance(self._data, dict):
             return sorted(list(self._data.keys()))

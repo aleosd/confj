@@ -224,3 +224,7 @@ def test_validation(file_config, schema, do_raise, result):
             file_config.c_validate(schema, do_raise=True)
     else:
         assert file_config.c_validate(schema) is result
+
+
+def test_value_unpacking(dir_config):
+    assert dict(**dir_config) == dir_config
