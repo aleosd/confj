@@ -38,13 +38,13 @@ def file_config():
 
 
 def test_config_dir_load(dir_config):
-    assert list(dir_config.c_keys()) == [
+    assert list(dir_config.keys()) == [
         'empty', 'projects', 'secrets', 'settings']
-    assert list(dir_config.secrets.c_keys()) == ['password', 'user']
+    assert list(dir_config.secrets.keys()) == ['password', 'user']
 
 
 def test_config_file_load(file_config):
-    assert list(file_config.c_keys()) == [
+    assert list(file_config.keys()) == [
         'array_of_objects', 'some_array',
         'some_bool', 'some_int', 'some_nested_dict', 'some_none', 'some_string'
     ]
@@ -58,6 +58,7 @@ def test_config_access(dir_config):
     assert dir_config.secrets.get('user') == 'username'
     assert dir_config.secrets.get('token') is None
     assert dir_config.secrets.get('token', 'abc') == 'abc'
+    assert dir_config.settings.some_nested_dict.port == 5432
 
     with pytest.raises(NoConfigOptionError):
         _ = dir_config.some_wrong_option
@@ -88,7 +89,7 @@ def test_data_types(config):
 
 @pytest.mark.parametrize('config', conf_params)
 def test_items_access(config):
-    for option, value in config.c_items():
+    for option, value in config.items():
         if option == 'some_int':
             assert value == 13
         if option == 'some_bool':
@@ -130,7 +131,7 @@ def test_select_config_path():
 def test_autoload():
     path = str(pathlib.Path(__file__).parent / 'fixtures' / 'valid_conf')
     config = Config(default_config_path=path, autoload=True)
-    assert list(config.c_keys()) == ['empty', 'projects', 'secrets', 'settings']
+    assert list(config.keys()) == ['empty', 'projects', 'secrets', 'settings']
 
 
 def test_empty(dir_config):
@@ -138,11 +139,11 @@ def test_empty(dir_config):
 
 
 def test_config_data(dir_config):
-    assert dir_config.secrets.c_data() == {
+    assert dir_config.secrets == {
         'user': 'username',
         'password': 'password',
     }
-    assert dir_config.projects.c_data() == [{
+    assert dir_config.projects == [{
       "name": "Project1",
       "id": 1,
       "data": {
