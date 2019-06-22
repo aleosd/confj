@@ -7,16 +7,44 @@ from . import const
 from .exceptions import ConfigLoadException, NoConfigOptionError, \
     ConfigException
 
+try:
+    from jsonschema import Draft7Validator, ValidationError
+    from jsonschema.validators import extend
+except ImportError:
+    raise ImportError(
+        'Cannot find "jsonschema" package. Either install it manually '
+        'with pip, or install confj with validation option: '
+        'pip install confj[validation]')
 
-class ObjectEncoder(json.JSONEncoder):
+
+class ConfigEncoder(json.JSONEncoder):
+    # pylint: disable=E0202
+    def default(self, o):
+        if isinstance(o, ConfigData):
+            # pylint: disable=W0212
+            return o._data
+        return o
+
     def encode(self, o):
         if isinstance(o, ConfigData):
             # pylint: disable=W0212
-            return json.dumps(o._data)
-        return super(ObjectEncoder, self).encode(o)
+            return json.dumps(o._data, cls=ConfigEncoder)
+        return super(ConfigEncoder, self).encode(o)
 
 
-class ConfigData(dict):
+# pylint: disable=W0613
+def is_config(checker, instance):
+    return (Draft7Validator.TYPE_CHECKER.is_type(instance, "object") or
+            isinstance(instance, ConfigData))
+
+
+TYPE_CHECKER = Draft7Validator.TYPE_CHECKER.redefine("object", is_config)
+
+ConfigValidator = extend(Draft7Validator, type_checker=TYPE_CHECKER)
+CONFIG_VALIDATOR = ConfigValidator(schema={"type": "object"})
+
+
+class ConfigData:
     def __init__(self, data=None):
         self._data = data or dict()
         super(ConfigData, self).__init__()
@@ -45,14 +73,16 @@ class ConfigData(dict):
         return self._data == other
 
     def __repr__(self):
-        return "<class 'ConfigData'>: {}".format(json.dumps(self._data, cls=ObjectEncoder))
+        return "<class 'ConfigData'>: {}".format(json.dumps(self._data, cls=ConfigEncoder))
 
     def __str__(self):
-        return json.dumps(self._data, cls=ObjectEncoder)
+        return json.dumps(self._data, cls=ConfigEncoder)
 
     def __iter__(self):
-        for i in self.keys():
-            yield i
+        return iter(self._data.keys())
+
+    def __len__(self):
+        return len(self._data)
 
     def keys(self):
         return sorted(list(self._data.keys()))
@@ -64,7 +94,7 @@ class ConfigData(dict):
             return default
 
     def items(self):
-        if isinstance(self._data, dict):
+        if isinstance(self._data, (dict, ConfigData)):
             return self._data.items()
         raise ConfigException('Called "items" on non-dict config option')
 
@@ -78,14 +108,7 @@ class ConfigData(dict):
 
     def c_validate(self, schema, do_raise=False):
         try:
-            from jsonschema import validate, ValidationError
-        except ImportError:
-            raise ImportError(
-                'Cannot find "jsonschema" package. Either install it manually '
-                'with pip, or install confj with validation option: '
-                'pip install confj[validation]')
-        try:
-            validate(self, schema)
+            CONFIG_VALIDATOR.validate(self, schema)
             return True
         except ValidationError:
             if do_raise:

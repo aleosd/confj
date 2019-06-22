@@ -144,26 +144,26 @@ def test_config_data(dir_config):
         'password': 'password',
     }
     assert dir_config.projects == [{
-      "name": "Project1",
-      "id": 1,
-      "data": {
-        "key1": "value1",
-        "key2": "value2"
-      }
+        "name": "Project1",
+        "id": 1,
+        "data": {
+            "key1": "value1",
+            "key2": "value2"
+        }
     }, {
-      "name": "Project2",
-      "id": 2,
-      "data": {
-        "key1": "value1",
-        "key2": "value2"
-      }
+        "name": "Project2",
+        "id": 2,
+        "data": {
+            "key1": "value1",
+            "key2": "value2"
+        }
     }, {
-      "name": "Project3",
-      "id": 3,
-      "data": {
-        "key1": "value1",
-        "key2": "value2"
-      }
+        "name": "Project3",
+        "id": 3,
+        "data": {
+            "key1": "value1",
+            "key2": "value2"
+        }
     }]
 
 
@@ -186,27 +186,27 @@ def test_config_format(dir_config):
     ({}, False, True),
     (True, False, True),
     ({
-        "type": "object",
-        "properties": {
-            "some_int": {"type": "integer"},
-            "some_bool": {"type": "boolean"},
-            "some_string": {"type": "string"},
-            "some_array": {"type": "array"},
-            "some_none": {"type": "null"},
-            "some_nested_dict": {"type": "object"},
-            "some_array_of_objects": {
-                "type": "array", "items": {"type": "object"}
-            },
-        }
-    }, False, True),
+         "type": "object",
+         "properties": {
+             "some_int": {"type": "integer"},
+             "some_bool": {"type": "boolean"},
+             "some_string": {"type": "string"},
+             "some_array": {"type": "array"},
+             "some_none": {"type": "null"},
+             "some_nested_dict": {"type": "object"},
+             "some_array_of_objects": {
+                 "type": "array", "items": {"type": "object"}
+             },
+         }
+     }, False, True),
     ({
-        "type": "object",
-        "properties": {
-            "some_int": {"type": "string"},
-            "some_bool": {"type": "boolean"},
-            "some_string": {"type": "string"},
-        }
-    }, False, False),
+         "type": "object",
+         "properties": {
+             "some_int": {"type": "string"},
+             "some_bool": {"type": "boolean"},
+             "some_string": {"type": "string"},
+         }
+     }, False, False),
     ({
          "type": "object",
          "properties": {
@@ -226,8 +226,9 @@ def test_validation(file_config, schema, do_raise, result):
         assert file_config.c_validate(schema) is result
 
 
-def test_value_unpacking(dir_config):
-    assert dict(**dir_config) == dir_config
+def test_value_unpacking(file_config, dir_config):
+    for c in [file_config, dir_config]:
+        assert dict(**c) == c
 
 
 def test_keys(dir_config):
