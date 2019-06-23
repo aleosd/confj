@@ -1,4 +1,4 @@
-# jconf
+# ConfJ
 
 Package is used to load config from json files. Path to config can lead either
 to directory with a bunch of json files, or to a single json file. Contents is
@@ -32,8 +32,7 @@ config.load('/path/to/config')
 
 If path to config is a directory, each file will be available as an attribute
 of `config` object. Otherwise, if path is a file, `config` object will store
-parsed json from given file, allowing access to first-level json-data via
-attributes.
+parsed json from given file, allowing access to data via attributes.
 
 Config can be loaded during initialization step, just set `autoload` parameter
 to `True`. Optionally path to load configs from might be passed during
@@ -61,29 +60,24 @@ object, ot `dict`-like syntax:
 
 ``` 
 
-Please, take a note, that attribute-like access is available only for first-level
-config options. If you store a lot of nested objects in your json config,
-they'll be represented as simple dict objects, without special methods.
-
 ### Config search precedence
 
-1. If you directly call `load` method with `config_path` passed as parameter, then
-this path is used.
+1. If you directly call `load` method with `config_path` passed as parameter,
+then this path is used.
 2. If no `config_path` provided or `autoload` option was used,
 then `default_config_path` from initialization step is used.
-3. The last option is
-to set `JSON_CONFIG_PATH` environment value. If the search is failed on all
-three steps, then `ConfigException` is raised.
+3. The last option is to set `JSON_CONFIG_PATH` environment value. If the search
+is failed on all three steps, then `ConfigException` is raised.
 
 ### Available methods
 
 All `config` object's method names are starting with `c_`, to avoid possible
 clash with possible config options
 
-* `c_key` returns sorted list of available config options (keys)
-* `c_items` returns iterator of key, value - config options and it's values. It
-is just a proxy to `items` method of python dictionary. If config structure is
-not a dictionary, than `ConfigException` is raised.
+* `c_format` returns pretty formatted sting representing config;
+* `c_pprint` outputs formatted config to stdout;
+* `c_validate` validates config against given json schema. See `Validation`
+section below.
 
 ### Validation
 
