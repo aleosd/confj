@@ -1,5 +1,5 @@
 try:
-    from jsonschema import Draft7Validator, ValidationError
+    from jsonschema import Draft7Validator
     from jsonschema.validators import extend
 except ImportError:
     raise ImportError(
@@ -7,7 +7,7 @@ except ImportError:
         'with pip, or install confj with validation option: '
         'pip install confj[validation]')
 
-from .conf import ConfigData
+from .confdata import ConfigData
 
 
 # pylint: disable=W0613
