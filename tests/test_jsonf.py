@@ -237,3 +237,15 @@ def test_keys(dir_config):
 
     with pytest.raises(AttributeError):
         _ = dir_config.projects.keys()
+
+
+def test_iteration(dir_config):
+    expected_keys = ['empty', 'projects', 'secrets', 'settings']
+    for actual, expected in zip(dir_config, expected_keys):
+        assert actual == expected
+
+
+def test_hash(dir_config):
+    hash(dir_config)
+    for config_item in dir_config.keys():
+        hash(dir_config[config_item])

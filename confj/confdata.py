@@ -54,10 +54,15 @@ class ConfigData:
         return json.dumps(self._data, cls=ConfigEncoder)
 
     def __iter__(self):
-        return iter(self._data.keys())
+        if isinstance(self._data, (dict, ConfigData)):
+            return iter(self.keys())
+        return iter(self._data)
 
     def __len__(self):
         return len(self._data)
+
+    def __hash__(self):
+        return hash(str(self._data))
 
     def keys(self):
         return sorted(list(self._data.keys()))
