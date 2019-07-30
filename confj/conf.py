@@ -46,7 +46,7 @@ class Config(ConfigData):
             config_name = file.stem
             file_contents = file.read_text()
             if not file_contents.strip():
-                self._data[config_name] = ''
+                self._data[config_name] = ConfigData(data='')
             else:
                 config_data = json.loads(file.read_text())
                 self.add_subconfig(config_name, config_data)

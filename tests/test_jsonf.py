@@ -135,7 +135,7 @@ def test_autoload():
 
 
 def test_empty(dir_config):
-    assert dir_config.empty == ''
+    assert dir_config.empty == dict()
 
 
 def test_config_data(dir_config):
@@ -249,3 +249,25 @@ def test_hash(dir_config):
     hash(dir_config)
     for config_item in dir_config.keys():
         hash(dir_config[config_item])
+
+
+def test_config_set(dir_config):
+    dir_config.set('new_key', 'new_value')
+    assert dir_config.new_key == 'new_value'
+
+    dir_config.set('array_key', ['a', 'b', 'c'])
+    assert dir_config.array_key == ['a', 'b', 'c']
+
+    dir_config.secrets.set('expire_days', 5)
+    assert dir_config.secrets.expire_days == 5
+
+    dir_config.empty.set('data', {'days': 5, 'weeks': 3, 't': {'n': 'n'}})
+    assert dir_config.empty.data == {'days': 5, 'weeks': 3, 't': {'n': 'n'}}
+    assert dir_config.empty.data.days == 5
+    assert dir_config.empty.data.t.n == 'n'
+
+    dir_config.settings.some_nested_dict.set('dbname', 'test')
+    assert dir_config.settings.some_nested_dict.dbname == 'test'
+
+    with pytest.raises(ConfigException):
+        dir_config.projects.set('new_item', {'a': 'b'})
