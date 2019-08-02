@@ -1,3 +1,4 @@
+import json
 import os
 import pathlib
 
@@ -271,3 +272,26 @@ def test_config_set(dir_config):
 
     with pytest.raises(ConfigException):
         dir_config.projects.set('new_item', {'a': 'b'})
+
+
+def test_load_from_obj():
+    file_path = pathlib.Path(__file__).parent / 'fixtures' / 'valid_conf' / \
+           'settings.json'
+    python_obj = json.loads(file_path.read_text())
+    assert isinstance(python_obj, dict)
+    config = Config()
+    config.loaf_from_obj(python_obj)
+
+    assert config.some_int == 13
+    assert config.some_bool is True
+    assert config.some_string == 'string_value'
+    assert config.some_array == [13, "string", False]
+    assert config.some_none is None
+    assert config.some_nested_dict == {'port': 5432, 'host': 'localhost'}
+    assert config.some_nested_dict.port == 5432
+    assert config.some_nested_dict.host == 'localhost'
+    assert config.array_of_objects == [
+        {"id": 1, "name": "obj1"},
+        {"id": 2, "name": "obj2"},
+        {"id": 3, "name": "obj3"}
+    ]
