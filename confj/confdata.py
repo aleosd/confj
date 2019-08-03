@@ -64,6 +64,9 @@ class ConfigData:
     def __hash__(self):
         return hash(str(self._data))
 
+    def __bool__(self):
+        return self._data
+
     def keys(self):
         return sorted(list(self._data.keys()))
 
@@ -85,3 +88,12 @@ class ConfigData:
     def c_pprint(self):
         import pprint
         return pprint.pprint(self._data, indent=2)
+
+    def set(self, key, value):
+        if not self._data:
+            self._data = {}
+        if not isinstance(self._data, dict):
+            raise ConfigException(
+                'Expected data to be of dict type to proceed with "set" '
+                'operation, got {} instead'.format(type(value)))
+        self._data[key] = value

@@ -26,6 +26,9 @@ class Config(ConfigData):
         raise ConfigLoadException('Expected path {} to be file or '
                                   'directory'.format(path))
 
+    def loaf_from_obj(self, python_object):
+        self._data = ConfigData(data=python_object)
+
     def _select_config_path(self, config_path: Optional[str] = None) -> str:
         if config_path:
             return config_path
@@ -46,7 +49,7 @@ class Config(ConfigData):
             config_name = file.stem
             file_contents = file.read_text()
             if not file_contents.strip():
-                self._data[config_name] = ''
+                self._data[config_name] = ConfigData(data='')
             else:
                 config_data = json.loads(file.read_text())
                 self.add_subconfig(config_name, config_data)

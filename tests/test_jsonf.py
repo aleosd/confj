@@ -1,3 +1,4 @@
+import json
 import os
 import pathlib
 
@@ -135,7 +136,7 @@ def test_autoload():
 
 
 def test_empty(dir_config):
-    assert dir_config.empty == ''
+    assert dir_config.empty == dict()
 
 
 def test_config_data(dir_config):
@@ -249,3 +250,48 @@ def test_hash(dir_config):
     hash(dir_config)
     for config_item in dir_config.keys():
         hash(dir_config[config_item])
+
+
+def test_config_set(dir_config):
+    dir_config.set('new_key', 'new_value')
+    assert dir_config.new_key == 'new_value'
+
+    dir_config.set('array_key', ['a', 'b', 'c'])
+    assert dir_config.array_key == ['a', 'b', 'c']
+
+    dir_config.secrets.set('expire_days', 5)
+    assert dir_config.secrets.expire_days == 5
+
+    dir_config.empty.set('data', {'days': 5, 'weeks': 3, 't': {'n': 'n'}})
+    assert dir_config.empty.data == {'days': 5, 'weeks': 3, 't': {'n': 'n'}}
+    assert dir_config.empty.data.days == 5
+    assert dir_config.empty.data.t.n == 'n'
+
+    dir_config.settings.some_nested_dict.set('dbname', 'test')
+    assert dir_config.settings.some_nested_dict.dbname == 'test'
+
+    with pytest.raises(ConfigException):
+        dir_config.projects.set('new_item', {'a': 'b'})
+
+
+def test_load_from_obj():
+    file_path = pathlib.Path(__file__).parent / 'fixtures' / 'valid_conf' / \
+           'settings.json'
+    python_obj = json.loads(file_path.read_text())
+    assert isinstance(python_obj, dict)
+    config = Config()
+    config.loaf_from_obj(python_obj)
+
+    assert config.some_int == 13
+    assert config.some_bool is True
+    assert config.some_string == 'string_value'
+    assert config.some_array == [13, "string", False]
+    assert config.some_none is None
+    assert config.some_nested_dict == {'port': 5432, 'host': 'localhost'}
+    assert config.some_nested_dict.port == 5432
+    assert config.some_nested_dict.host == 'localhost'
+    assert config.array_of_objects == [
+        {"id": 1, "name": "obj1"},
+        {"id": 2, "name": "obj2"},
+        {"id": 3, "name": "obj3"}
+    ]
