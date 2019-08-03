@@ -69,6 +69,46 @@ then `default_config_path` from initialization step is used.
 3. The last option is to set `JSON_CONFIG_PATH` environment value. If the search
 is failed on all three steps, then `ConfigException` is raised.
 
+
+### Load from python object
+
+Config may be loaded from python object:
+
+```python
+from confj import Config
+
+
+config = Config()
+data = {'username': 'user', 'password': 'pass'}
+
+
+config.loaf_from_obj(data)
+
+assert config.username == 'username'
+assert config.password == 'pass'
+
+```
+
+### Set/change config data
+
+Config data may be changed or added to current config with `set` method:
+
+```python
+from confj import Config
+
+
+config = Config()
+data = {'username': 'user', 'password': 'pass'}
+
+
+config.loaf_from_obj(data)
+config.set('connection', {'port': 5432, 'host': 'localhost'})
+
+assert config.connetcion.port == 5432
+assert config.connection.host == 'localhost'
+
+```
+
 ### Available methods
 
 All `config` object's method names are starting with `c_`, to avoid possible
