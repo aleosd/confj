@@ -280,7 +280,7 @@ def test_load_from_obj():
     python_obj = json.loads(file_path.read_text())
     assert isinstance(python_obj, dict)
     config = Config()
-    config.loaf_from_obj(python_obj)
+    config.load_from_obj(python_obj)
 
     assert config.some_int == 13
     assert config.some_bool is True

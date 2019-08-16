@@ -26,7 +26,7 @@ class Config(ConfigData):
         raise ConfigLoadException('Expected path {} to be file or '
                                   'directory'.format(path))
 
-    def loaf_from_obj(self, python_object):
+    def load_from_obj(self, python_object):
         self._data = ConfigData(data=python_object)
 
     def _select_config_path(self, config_path: Optional[str] = None) -> str:
