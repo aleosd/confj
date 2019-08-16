@@ -82,7 +82,7 @@ config = Config()
 data = {'username': 'user', 'password': 'pass'}
 
 
-config.loaf_from_obj(data)
+config.load_from_obj(data)
 
 assert config.username == 'username'
 assert config.password == 'pass'
@@ -101,7 +101,7 @@ config = Config()
 data = {'username': 'user', 'password': 'pass'}
 
 
-config.loaf_from_obj(data)
+config.load_from_obj(data)
 config.set('connection', {'port': 5432, 'host': 'localhost'})
 
 assert config.connetcion.port == 5432
