@@ -57,7 +57,6 @@ object, ot `dict`-like syntax:
 
 >>> config.get('username')
 'user'
-
 ``` 
 
 ### Config search precedence
@@ -86,7 +85,6 @@ config.load_from_obj(data)
 
 assert config.username == 'username'
 assert config.password == 'pass'
-
 ```
 
 ### Set/change config data
@@ -106,7 +104,6 @@ config.set('connection', {'port': 5432, 'host': 'localhost'})
 
 assert config.connetcion.port == 5432
 assert config.connection.host == 'localhost'
-
 ```
 
 ### Available methods
