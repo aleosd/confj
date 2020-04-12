@@ -51,8 +51,13 @@ class Config(ConfigData):
             if not file_contents.strip():
                 self._data[config_name] = ConfigData(data='')
             else:
-                config_data = json.loads(file.read_text())
-                self.add_subconfig(config_name, config_data)
+                try:
+                    config_data = json.loads(file.read_text())
+                    self.add_subconfig(config_name, config_data)
+                except ValueError as err:
+                    msg = "Error while loading secrets from file {}: {}, " \
+                          "{}".format(file, type(err).__name__, err)
+                    raise ConfigLoadException(msg)
 
     def c_validate(self, schema, do_raise=False):
         from jsonschema import ValidationError

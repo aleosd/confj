@@ -1,27 +1,30 @@
 import json
 import os
 import pathlib
+import re
 
 from jsonschema import ValidationError
 import pytest
 
 from confj import Config
 from confj import const
-from confj.exceptions import NoConfigOptionError, ConfigException
+from confj.exceptions import NoConfigOptionError, ConfigException, \
+    ConfigLoadException
+
+
+INVALID_CONF_PATH = pathlib.Path(__file__).parent / 'fixtures' / 'invalid_conf'
+VALID_CONF_PATH = pathlib.Path(__file__).parent / 'fixtures' / 'valid_conf'
 
 
 def get_dir_conf():
-    path = pathlib.Path(__file__).parent / 'fixtures' / 'valid_conf'
     config = Config()
-    config.load(path)
+    config.load(VALID_CONF_PATH)
     return config
 
 
 def get_file_conf():
-    path = pathlib.Path(__file__).parent / 'fixtures' / 'valid_conf' / \
-           'settings.json'
     config = Config()
-    config.load(path)
+    config.load(VALID_CONF_PATH / 'settings.json')
     return config
 
 
@@ -295,3 +298,15 @@ def test_load_from_obj():
         {"id": 2, "name": "obj2"},
         {"id": 3, "name": "obj3"}
     ]
+
+
+def test_broken_json_load():
+    config = Config()
+
+    expected_error_message = re.escape(
+        "Error while loading secrets from file {}: JSONDecodeError, Expecting "
+        "property name enclosed in double quotes: line 4 column 1 "
+        "(char 44)".format(INVALID_CONF_PATH / 'wrong_json.json')
+    )
+    with pytest.raises(ConfigLoadException, match=expected_error_message):
+        config.load(INVALID_CONF_PATH)
