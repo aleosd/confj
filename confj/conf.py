@@ -3,8 +3,8 @@ import os
 import pathlib
 from typing import Optional
 
-from confj.confdata import ConfigData
 from . import const
+from .confdata import ConfigData
 from .exceptions import ConfigLoadException, ConfigException
 
 
@@ -28,6 +28,19 @@ class Config(ConfigData):
 
     def load_from_obj(self, python_object):
         self._data = ConfigData(data=python_object)
+
+    def load_from_aws_sm(self, secret_name: str):
+        secret_name = self._select_config_path(secret_name)
+
+        import boto3
+        sm_client = boto3.client("secretsmanager")
+        try:
+            conf_data = sm_client.get_secret_value(SecretId=secret_name)
+            self._data = ConfigData(data=json.loads(conf_data["SecretString"]))
+        except Exception as err:
+            msg = "Error while loading secrets from secret {}: {}, " \
+                  "{}".format(secret_name, type(err).__name__, err)
+            raise ConfigLoadException(msg)
 
     def _select_config_path(self, config_path: Optional[str] = None) -> str:
         if config_path:

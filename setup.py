@@ -1,5 +1,5 @@
-from setuptools import setup, find_packages
 from os import path
+from setuptools import setup, find_packages
 
 here = path.abspath(path.dirname(__file__))
 
@@ -18,11 +18,7 @@ setup(
     author='Alekey Osadchuk',
     author_email='osdalex@gmail.com',
     classifiers=[
-        # How mature is this project? Common values are
-        #   3 - Alpha
-        #   4 - Beta
-        #   5 - Production/Stable
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
 
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Build Tools',
@@ -41,16 +37,9 @@ setup(
     keywords='json configs loader',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     python_requires='>=3.5, <4',
-    # List additional groups of dependencies here (e.g. development
-    # dependencies). Users will be able to install these using the "extras"
-    # syntax, for example:
-    #
-    #   $ pip install sampleproject[dev]
-    #
-    # Similar to `install_requires` above, these must be valid existing
-    # projects.
     extras_require={
         'validation': ['jsonschema'],
+        'aws': ['boto3'],
         'test': ['pytest'],
     },
 

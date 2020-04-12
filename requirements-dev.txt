@@ -1,3 +1,5 @@
 pytest
 pylint
 jsonschema
+boto3
+moto
