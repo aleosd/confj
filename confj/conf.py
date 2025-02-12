@@ -23,8 +23,9 @@ class Config(ConfigData):
             return self._load_from_dir(path)
         if path.is_file():
             return self._load_from_file(path)
-        raise ConfigLoadException('Expected path {} to be file or '
-                                  'directory'.format(path))
+        raise ConfigLoadException(
+            "Expected path {} to be file or directory".format(path)
+        )
 
     def load_from_obj(self, python_object):
         self._data = ConfigData(data=python_object)
@@ -33,13 +34,15 @@ class Config(ConfigData):
         secret_name = self._select_config_path(secret_name)
 
         import boto3
+
         sm_client = boto3.client("secretsmanager")
         try:
             conf_data = sm_client.get_secret_value(SecretId=secret_name)
             self._data = ConfigData(data=json.loads(conf_data["SecretString"]))
         except Exception as err:
-            msg = "Error while loading secrets from secret {}: {}, " \
-                  "{}".format(secret_name, type(err).__name__, err)
+            msg = "Error while loading secrets from secret {}: {}, {}".format(
+                secret_name, type(err).__name__, err
+            )
             raise ConfigLoadException(msg)
 
     def _select_config_path(self, config_path: Optional[str] = None) -> str:
@@ -50,7 +53,7 @@ class Config(ConfigData):
         env_config_path = os.environ.get(const.ENV_CONF_PATH_NAME)
         if env_config_path:
             return env_config_path
-        raise ConfigException('Please provide path to load config from')
+        raise ConfigException("Please provide path to load config from")
 
     def _load_from_file(self, file_path):
         self._data = ConfigData(json.loads(file_path.read_text()))
@@ -62,21 +65,25 @@ class Config(ConfigData):
             config_name = file.stem
             file_contents = file.read_text()
             if not file_contents.strip():
-                self._data[config_name] = ConfigData(data='')
+                self._data[config_name] = ConfigData(data="")
             else:
                 try:
                     config_data = json.loads(file.read_text())
                     self.add_subconfig(config_name, config_data)
                 except ValueError as err:
-                    msg = "Error while loading secrets from file {}: {}, " \
-                          "{}".format(file, type(err).__name__, err)
+                    msg = (
+                        "Error while loading secrets from file {}: {}, "
+                        "{}".format(file, type(err).__name__, err)
+                    )
                     raise ConfigLoadException(msg)
 
-    def c_validate(self, schema, do_raise=False):
+    def c_validate(self, schema, do_raise=False) -> bool:
         from jsonschema import ValidationError
-        from .validation import CONFIG_VALIDATOR
+        from .validation import config_validator
+
         try:
-            CONFIG_VALIDATOR.validate(self, schema)
+            validator = config_validator.evolve(schema=schema)
+            validator.validate(self)
             return True
         except ValidationError:
             if do_raise:
@@ -85,9 +92,8 @@ class Config(ConfigData):
 
     def add_subconfig(self, name, config_data):
         if name in self._data:
-            raise ConfigException('Config already contains "{}" option!'.format(
-                name))
+            raise ConfigException(f'Config already contains "{name}" option!')
         self._data[name] = ConfigData(config_data)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<class 'Config'>: {}".format(self)

@@ -1,0 +1,28 @@
+[project]
+name = "confj"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+validation = [
+    "jsonschema>=4.23.0",
+]
+aws = [
+    "boto3>=1.36.19",
+]
+
+[dependency-groups]
+dev = [
+    "moto>=5.0.28",
+    "pytest>=8.3.4",
+    "ruff>=0.9.6",
+]
+
+[tool.ruff]
+line-length = 80
+
+[tool.ruff.format]
+docstring-code-format = true

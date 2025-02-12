@@ -32,13 +32,13 @@ class ConfigData:
                 return ConfigData(self._data[item])
 
             return self._data[item]
-        raise NoConfigOptionError('No such config option: {}'.format(item))
+        raise NoConfigOptionError("No such config option: {}".format(item))
 
     def __getitem__(self, key):
         try:
             return self._data[key]
         except KeyError:
-            raise NoConfigOptionError('No such config option: {}'.format(key))
+            raise NoConfigOptionError("No such config option: {}".format(key))
 
     def __contains__(self, item):
         return item in self._data
@@ -47,8 +47,9 @@ class ConfigData:
         return self._data == other
 
     def __repr__(self):
-        return "<class 'ConfigData'>: {}".format(json.dumps(
-            self._data, cls=ConfigEncoder))
+        return "<class 'ConfigData'>: {}".format(
+            json.dumps(self._data, cls=ConfigEncoder)
+        )
 
     def __str__(self):
         return json.dumps(self._data, cls=ConfigEncoder)
@@ -83,10 +84,12 @@ class ConfigData:
 
     def c_format(self):
         import pprint
+
         return pprint.pformat(self._data, indent=2)
 
     def c_pprint(self):
         import pprint
+
         return pprint.pprint(self._data, indent=2)
 
     def set(self, key, value):
@@ -95,5 +98,6 @@ class ConfigData:
         if not isinstance(self._data, dict):
             raise ConfigException(
                 'Expected data to be of dict type to proceed with "set" '
-                'operation, got {} instead'.format(type(value)))
+                "operation, got {} instead".format(type(value))
+            )
         self._data[key] = value
