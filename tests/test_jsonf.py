@@ -116,6 +116,7 @@ def test_items_access(config):
         if option == "some_nested_dict":
             assert value == {"port": 5432, "host": "localhost"}
         if option == "array_of_objects":
+            assert isinstance(value, list)
             for i, obj in enumerate(value):
                 idx = i + 1
                 assert obj == {"id": idx, "name": "obj{}".format(idx)}
@@ -123,14 +124,16 @@ def test_items_access(config):
 
 def test_select_config_path():
     config = Config(default_config_path="./fixtures")
-    assert config._select_config_path() == "./fixtures"
+    assert config._select_config_path() == pathlib.Path("./fixtures")
 
     config = Config()
-    assert config._select_config_path("param_path") == "param_path"
+    assert config._select_config_path("param_path") == pathlib.Path(
+        "param_path"
+    )
 
     os.environ[const.ENV_CONF_PATH_NAME] = "env_config_path"
     config = Config()
-    assert config._select_config_path() == "env_config_path"
+    assert config._select_config_path() == pathlib.Path("env_config_path")
     del os.environ[const.ENV_CONF_PATH_NAME]
 
     config = Config()

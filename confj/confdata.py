@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import json
+import typing as t
 
 from confj.exceptions import NoConfigOptionError, ConfigException
 
@@ -19,7 +22,7 @@ class ConfigEncoder(json.JSONEncoder):
 
 
 class ConfigData:
-    def __init__(self, data=None):
+    def __init__(self, data: ConfigData | dict | None = None):
         self._data = data or dict()
         super(ConfigData, self).__init__()
 
@@ -40,6 +43,9 @@ class ConfigData:
         except KeyError:
             raise NoConfigOptionError("No such config option: {}".format(key))
 
+    def __setitem__(self, key: str, value: t.Any) -> None:
+        self._data[key] = value
+
     def __contains__(self, item):
         return item in self._data
 
@@ -55,11 +61,9 @@ class ConfigData:
         return json.dumps(self._data, cls=ConfigEncoder)
 
     def __iter__(self):
-        if isinstance(self._data, (dict, ConfigData)):
-            return iter(self.keys())
-        return iter(self._data)
+        return iter(self.keys())
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._data)
 
     def __hash__(self):

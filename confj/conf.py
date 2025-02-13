@@ -1,7 +1,6 @@
 import json
 import os
 import pathlib
-from typing import Optional
 
 from . import const
 from .confdata import ConfigData
@@ -9,14 +8,18 @@ from .exceptions import ConfigLoadException, ConfigException
 
 
 class Config(ConfigData):
-    def __init__(self, default_config_path=None, autoload=False):
+    def __init__(
+        self,
+        default_config_path: pathlib.Path | str | None = None,
+        autoload: bool = False,
+    ) -> None:
         super(Config, self).__init__()
         self.default_config_path = default_config_path
         if autoload:
             self.load()
 
-    def load(self, config_path=None):
-        path = pathlib.Path(self._select_config_path(config_path))
+    def load(self, config_path: pathlib.Path | str | None = None):
+        path = self._select_config_path(config_path)
         if not path.exists():
             raise ConfigLoadException('Path "{}" does not exist'.format(path))
         if path.is_dir():
@@ -27,12 +30,10 @@ class Config(ConfigData):
             "Expected path {} to be file or directory".format(path)
         )
 
-    def load_from_obj(self, python_object):
+    def load_from_obj(self, python_object) -> None:
         self._data = ConfigData(data=python_object)
 
-    def load_from_aws_sm(self, secret_name: str):
-        secret_name = self._select_config_path(secret_name)
-
+    def load_from_aws_sm(self, secret_name: str) -> None:
         import boto3
 
         sm_client = boto3.client("secretsmanager")
@@ -45,27 +46,30 @@ class Config(ConfigData):
             )
             raise ConfigLoadException(msg)
 
-    def _select_config_path(self, config_path: Optional[str] = None) -> str:
-        if config_path:
-            return config_path
-        if self.default_config_path:
-            return self.default_config_path
-        env_config_path = os.environ.get(const.ENV_CONF_PATH_NAME)
-        if env_config_path:
-            return env_config_path
-        raise ConfigException("Please provide path to load config from")
+    def _select_config_path(
+        self, config_path: pathlib.Path | str | None = None
+    ) -> pathlib.Path:
+        choices = [
+            config_path,
+            self.default_config_path,
+            os.environ.get(const.ENV_CONF_PATH_NAME),
+        ]
+        try:
+            return pathlib.Path(list(filter(None, choices))[0])
+        except IndexError:
+            raise ConfigException("Please provide path to load config from")
 
-    def _load_from_file(self, file_path):
+    def _load_from_file(self, file_path: pathlib.Path) -> None:
         self._data = ConfigData(json.loads(file_path.read_text()))
 
-    def _load_from_dir(self, dir_path: pathlib.Path):
+    def _load_from_dir(self, dir_path: pathlib.Path) -> None:
         for file in dir_path.iterdir():
             if not file.is_file():
                 continue
             config_name = file.stem
             file_contents = file.read_text()
             if not file_contents.strip():
-                self._data[config_name] = ConfigData(data="")
+                self._data[config_name] = ConfigData()
             else:
                 try:
                     config_data = json.loads(file.read_text())
@@ -77,7 +81,7 @@ class Config(ConfigData):
                     )
                     raise ConfigLoadException(msg)
 
-    def c_validate(self, schema, do_raise=False) -> bool:
+    def c_validate(self, schema, do_raise: bool = False) -> bool:
         from jsonschema import ValidationError
         from .validation import config_validator
 
@@ -90,10 +94,10 @@ class Config(ConfigData):
                 raise
             return False
 
-    def add_subconfig(self, name, config_data):
+    def add_subconfig(self, name: str, config_data) -> None:
         if name in self._data:
             raise ConfigException(f'Config already contains "{name}" option!')
         self._data[name] = ConfigData(config_data)
 
     def __repr__(self) -> str:
-        return "<class 'Config'>: {}".format(self)
+        return f"<class 'Config'>: {self._data}"
