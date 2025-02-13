@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "**.py"
+      - ".github/workflows/verify.yml"
   pull_request:
     branches:
       - master
@@ -11,7 +12,7 @@ on:
 
 jobs:
   build:
-    name: continuous-integration
+    name: Test and lint
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -34,7 +35,7 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Run linter
-        run: uv run ruff ./confj
+        run: uv run ruff check ./confj
 
       - name: Run formatter
         run: uv run ruff format --check ./confj

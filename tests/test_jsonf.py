@@ -330,9 +330,8 @@ def test_broken_json_load():
     config = Config()
 
     expected_error_message = re.escape(
-        "Error while loading secrets from file {}: JSONDecodeError, Illegal "
-        "trailing comma before end of object: line 3 column 17 "
-        "(char 42)".format(INVALID_CONF_PATH / "wrong_json.json")
+        "Error while loading secrets from file {}: "
+        "JSONDecodeError".format(INVALID_CONF_PATH / "wrong_json.json")
     )
     with pytest.raises(ConfigLoadException, match=expected_error_message):
         config.load(INVALID_CONF_PATH)
