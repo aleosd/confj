@@ -3,17 +3,16 @@ import os
 import pathlib
 import re
 
-from jsonschema import ValidationError
 import pytest
+from jsonschema import ValidationError
 
-from confj import Config
-from confj import const
+from confj import Config, const
+from confj.confdata import ConfigData
 from confj.exceptions import (
-    NoConfigOptionError,
     ConfigException,
     ConfigLoadException,
+    NoConfigOptionError,
 )
-
 
 INVALID_CONF_PATH = pathlib.Path(__file__).parent / "fixtures" / "invalid_conf"
 VALID_CONF_PATH = pathlib.Path(__file__).parent / "fixtures" / "valid_conf"
@@ -66,7 +65,7 @@ def test_config_file_load(file_config):
     ]
 
 
-def test_config_access(dir_config):
+def test__config_access(dir_config):
     assert dir_config.secrets.user == "username"
     assert dir_config["secrets"].user == "username"
     assert dir_config["secrets"]["user"] == "username"
@@ -78,12 +77,19 @@ def test_config_access(dir_config):
 
     with pytest.raises(NoConfigOptionError):
         _ = dir_config.some_wrong_option
+    with pytest.raises(NoConfigOptionError):
         _ = dir_config.settings.some_wrong_option
+    with pytest.raises(NoConfigOptionError):
         _ = dir_config.settings.some_wrong_option.even_deeper
+    with pytest.raises(NoConfigOptionError):
         _ = dir_config.settings.some_wrong_option.get("foo")
+    with pytest.raises(NoConfigOptionError):
         _ = dir_config["some_wrong_option"]
+    with pytest.raises(NoConfigOptionError):
         _ = dir_config.settings["some_wrong_option"]
+    with pytest.raises(NoConfigOptionError):
         _ = dir_config.settings["some_wrong_option"].even_deeper
+    with pytest.raises(NoConfigOptionError):
         _ = dir_config.settings["some_wrong_option"].get("foo")
 
 
@@ -330,8 +336,30 @@ def test_broken_json_load():
     config = Config()
 
     expected_error_message = re.escape(
-        "Error while loading secrets from file {}: "
-        "JSONDecodeError".format(INVALID_CONF_PATH / "wrong_json.json")
+        "Error while loading secrets from file {}: JSONDecodeError".format(
+            INVALID_CONF_PATH / "wrong_json.json"
+        )
     )
     with pytest.raises(ConfigLoadException, match=expected_error_message):
         config.load(INVALID_CONF_PATH)
+
+
+@pytest.mark.parametrize(
+    "data_1, data_2, equal",
+    [
+        ({}, {}, True),
+        (ConfigData({}), {}, True),
+        ({}, {"a": "b"}, False),
+        (ConfigData({"a": "b"}), {"a": "b"}, True),
+        ({"a": "b"}, ConfigData({"a": "b"}), True),
+    ],
+    ids=[
+        "empty",
+        "empty_config_data",
+        "empty_vs_non_empty",
+        "config_data",
+        "non_empty_vs_config_data",
+    ],
+)
+def test__eq_(data_1, data_2, equal):
+    assert (data_1 == data_2) is equal

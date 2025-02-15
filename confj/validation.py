@@ -1,3 +1,5 @@
+import typing as t
+
 try:
     from jsonschema import Draft7Validator
     from jsonschema.validators import extend
@@ -8,11 +10,11 @@ except ImportError:
         "pip install confj[validation]"
     )
 
-from .confdata import ConfigData
+from confj.confdata import ConfigData
 
 
 # pylint: disable=W0613
-def is_config(checker, instance):
+def is_config(checker, instance: t.Any) -> bool:
     return Draft7Validator.TYPE_CHECKER.is_type(
         instance, "object"
     ) or isinstance(instance, ConfigData)
@@ -20,5 +22,7 @@ def is_config(checker, instance):
 
 TYPE_CHECKER = Draft7Validator.TYPE_CHECKER.redefine("object", is_config)
 
-ConfigValidator = extend(Draft7Validator, type_checker=TYPE_CHECKER)
+ConfigValidator: type[Draft7Validator] = extend(
+    Draft7Validator, type_checker=TYPE_CHECKER
+)
 config_validator = ConfigValidator(schema={"type": "object"})

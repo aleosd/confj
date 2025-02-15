@@ -1,10 +1,11 @@
 import json
 import os
 import pathlib
+import typing as t
 
-from . import const
-from .confdata import ConfigData
-from .exceptions import ConfigLoadException, ConfigException
+from confj import const
+from confj.confdata import ConfigData
+from confj.exceptions import ConfigException, ConfigLoadException
 
 
 class Config(ConfigData):
@@ -30,13 +31,14 @@ class Config(ConfigData):
             "Expected path {} to be file or directory".format(path)
         )
 
-    def load_from_obj(self, python_object) -> None:
+    def load_from_obj(self, python_object: dict[str, t.Any]) -> None:
         self._data = ConfigData(data=python_object)
 
     def load_from_aws_sm(self, secret_name: str) -> None:
         import boto3
+        from mypy_boto3_secretsmanager.client import SecretsManagerClient
 
-        sm_client = boto3.client("secretsmanager")
+        sm_client: SecretsManagerClient = boto3.client("secretsmanager")  # type: ignore
         try:
             conf_data = sm_client.get_secret_value(SecretId=secret_name)
             self._data = ConfigData(data=json.loads(conf_data["SecretString"]))
@@ -81,8 +83,11 @@ class Config(ConfigData):
                     )
                     raise ConfigLoadException(msg)
 
-    def c_validate(self, schema, do_raise: bool = False) -> bool:
+    def c_validate(
+        self, schema: bool | dict[str, str], do_raise: bool = False
+    ) -> bool:
         from jsonschema import ValidationError
+
         from .validation import config_validator
 
         try:
@@ -94,9 +99,9 @@ class Config(ConfigData):
                 raise
             return False
 
-    def add_subconfig(self, name: str, config_data) -> None:
+    def add_subconfig(self, name: str, config_data: dict[str, t.Any]) -> None:
         if name in self._data:
-            raise ConfigException(f'Config already contains "{name}" option!')
+            raise ConfigException(f'Config already contains "{name}" option.')
         self._data[name] = ConfigData(config_data)
 
     def __repr__(self) -> str:

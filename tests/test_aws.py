@@ -3,8 +3,8 @@ import os
 from unittest.mock import patch
 
 import boto3
-from botocore.stub import Stubber, ANY
 import pytest
+from botocore.stub import ANY, Stubber
 
 from confj import Config
 
