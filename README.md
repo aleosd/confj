@@ -5,9 +5,6 @@ to directory with a bunch of json files, or to a single json file. Contents is
 parsed and stored into config object, allowing attribute-based access to 
 different options.
 
-[![Build Status](https://travis-ci.com/aleosd/confj.svg?branch=master)](https://travis-ci.com/aleosd/confj)
-[![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/aleosd)
-
 ## Installation
 
 Package can be installed with pip:

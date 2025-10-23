@@ -3,28 +3,30 @@ import os
 import pathlib
 import re
 
-from jsonschema import ValidationError
 import pytest
+from jsonschema import ValidationError
 
-from confj import Config
-from confj import const
-from confj.exceptions import NoConfigOptionError, ConfigException, \
-    ConfigLoadException
+from confj import Config, const
+from confj.confdata import ConfigData
+from confj.exceptions import (
+    ConfigException,
+    ConfigLoadException,
+    NoConfigOptionError,
+)
+
+INVALID_CONF_PATH = pathlib.Path(__file__).parent / "fixtures" / "invalid_conf"
+VALID_CONF_PATH = pathlib.Path(__file__).parent / "fixtures" / "valid_conf"
 
 
-INVALID_CONF_PATH = pathlib.Path(__file__).parent / 'fixtures' / 'invalid_conf'
-VALID_CONF_PATH = pathlib.Path(__file__).parent / 'fixtures' / 'valid_conf'
-
-
-def get_dir_conf():
+def get_dir_conf() -> Config:
     config = Config()
     config.load(VALID_CONF_PATH)
     return config
 
 
-def get_file_conf():
+def get_file_conf() -> Config:
     config = Config()
-    config.load(VALID_CONF_PATH / 'settings.json')
+    config.load(VALID_CONF_PATH / "settings.json")
     return config
 
 
@@ -43,88 +45,101 @@ def file_config():
 
 def test_config_dir_load(dir_config):
     assert list(dir_config.keys()) == [
-        'empty', 'projects', 'secrets', 'settings']
-    assert list(dir_config.secrets.keys()) == ['password', 'user']
+        "empty",
+        "projects",
+        "secrets",
+        "settings",
+    ]
+    assert list(dir_config.secrets.keys()) == ["password", "user"]
 
 
 def test_config_file_load(file_config):
     assert list(file_config.keys()) == [
-        'array_of_objects', 'some_array',
-        'some_bool', 'some_int', 'some_nested_dict', 'some_none', 'some_string'
+        "array_of_objects",
+        "some_array",
+        "some_bool",
+        "some_int",
+        "some_nested_dict",
+        "some_none",
+        "some_string",
     ]
 
 
-def test_config_access(dir_config):
-    assert dir_config.secrets.user == 'username'
-    assert dir_config['secrets'].user == 'username'
-    assert dir_config['secrets']['user'] == 'username'
-    assert dir_config.secrets['user'] == 'username'
-    assert dir_config.secrets.get('user') == 'username'
-    assert dir_config.secrets.get('token') is None
-    assert dir_config.secrets.get('token', 'abc') == 'abc'
+def test__config_access(dir_config):
+    assert dir_config.secrets.user == "username"
+    assert dir_config["secrets"].user == "username"
+    assert dir_config["secrets"]["user"] == "username"
+    assert dir_config.secrets["user"] == "username"
+    assert dir_config.secrets.get("user") == "username"
+    assert dir_config.secrets.get("token") is None
+    assert dir_config.secrets.get("token", "abc") == "abc"
     assert dir_config.settings.some_nested_dict.port == 5432
 
     with pytest.raises(NoConfigOptionError):
         _ = dir_config.some_wrong_option
+    with pytest.raises(NoConfigOptionError):
         _ = dir_config.settings.some_wrong_option
+    with pytest.raises(NoConfigOptionError):
         _ = dir_config.settings.some_wrong_option.even_deeper
-        _ = dir_config.settings.some_wrong_option.get('foo')
-        _ = dir_config['some_wrong_option']
-        _ = dir_config.settings['some_wrong_option']
-        _ = dir_config.settings['some_wrong_option'].even_deeper
-        _ = dir_config.settings['some_wrong_option'].get('foo')
+    with pytest.raises(NoConfigOptionError):
+        _ = dir_config.settings.some_wrong_option.get("foo")
+    with pytest.raises(NoConfigOptionError):
+        _ = dir_config["some_wrong_option"]
+    with pytest.raises(NoConfigOptionError):
+        _ = dir_config.settings["some_wrong_option"]
+    with pytest.raises(NoConfigOptionError):
+        _ = dir_config.settings["some_wrong_option"].even_deeper
+    with pytest.raises(NoConfigOptionError):
+        _ = dir_config.settings["some_wrong_option"].get("foo")
 
 
-@pytest.mark.parametrize('config', conf_params)
+@pytest.mark.parametrize("config", conf_params, ids=["config_data", "config"])
 def test_data_types(config):
     assert config.some_int == 13
     assert config.some_bool is True
     assert config.some_none is None
     assert config.some_string == "string_value"
     assert config.some_array == [13, "string", False]
-    assert config.some_nested_dict == {
-        "port": 5432,
-        "host": "localhost"
-    }
+    assert config.some_nested_dict == {"port": 5432, "host": "localhost"}
     for i, obj in enumerate(config.array_of_objects):
         idx = i + 1
         assert obj == {"id": idx, "name": "obj{}".format(idx)}
 
 
-@pytest.mark.parametrize('config', conf_params)
+@pytest.mark.parametrize("config", conf_params, ids=["config_data", "config"])
 def test_items_access(config):
     for option, value in config.items():
-        if option == 'some_int':
+        if option == "some_int":
             assert value == 13
-        if option == 'some_bool':
+        if option == "some_bool":
             assert value is True
-        if option == 'some_none':
+        if option == "some_none":
             assert value is None
-        if option == 'some_string':
+        if option == "some_string":
             assert value == "string_value"
-        if option == 'some_array':
+        if option == "some_array":
             assert value == [13, "string", False]
-        if option == 'some_nested_dict':
-            assert value == {
-                "port": 5432,
-                "host": "localhost"
-            }
-        if option == 'array_of_objects':
+        if option == "some_nested_dict":
+            assert value == {"port": 5432, "host": "localhost"}
+        if option == "array_of_objects":
+            assert isinstance(value, list)
             for i, obj in enumerate(value):
                 idx = i + 1
                 assert obj == {"id": idx, "name": "obj{}".format(idx)}
 
 
 def test_select_config_path():
-    config = Config(default_config_path='./fixtures')
-    assert config._select_config_path() == './fixtures'
+    config = Config(default_config_path="./fixtures")
+    assert config._select_config_path() == pathlib.Path("./fixtures")
 
     config = Config()
-    assert config._select_config_path('param_path') == 'param_path'
+    assert config._select_config_path("param_path") == pathlib.Path(
+        "param_path"
+    )
 
-    os.environ[const.ENV_CONF_PATH_NAME] = 'env_config_path'
+    os.environ[const.ENV_CONF_PATH_NAME] = "env_config_path"
     config = Config()
-    assert config._select_config_path() == 'env_config_path'
+    assert config._select_config_path() == pathlib.Path("env_config_path")
     del os.environ[const.ENV_CONF_PATH_NAME]
 
     config = Config()
@@ -133,9 +148,9 @@ def test_select_config_path():
 
 
 def test_autoload():
-    path = str(pathlib.Path(__file__).parent / 'fixtures' / 'valid_conf')
+    path = str(pathlib.Path(__file__).parent / "fixtures" / "valid_conf")
     config = Config(default_config_path=path, autoload=True)
-    assert list(config.keys()) == ['empty', 'projects', 'secrets', 'settings']
+    assert list(config.keys()) == ["empty", "projects", "secrets", "settings"]
 
 
 def test_empty(dir_config):
@@ -144,36 +159,33 @@ def test_empty(dir_config):
 
 def test_config_data(dir_config):
     assert dir_config.secrets == {
-        'user': 'username',
-        'password': 'password',
+        "user": "username",
+        "password": "password",
     }
-    assert dir_config.projects == [{
-        "name": "Project1",
-        "id": 1,
-        "data": {
-            "key1": "value1",
-            "key2": "value2"
-        }
-    }, {
-        "name": "Project2",
-        "id": 2,
-        "data": {
-            "key1": "value1",
-            "key2": "value2"
-        }
-    }, {
-        "name": "Project3",
-        "id": 3,
-        "data": {
-            "key1": "value1",
-            "key2": "value2"
-        }
-    }]
+    assert dir_config.projects == [
+        {
+            "name": "Project1",
+            "id": 1,
+            "data": {"key1": "value1", "key2": "value2"},
+        },
+        {
+            "name": "Project2",
+            "id": 2,
+            "data": {"key1": "value1", "key2": "value2"},
+        },
+        {
+            "name": "Project3",
+            "id": 3,
+            "data": {"key1": "value1", "key2": "value2"},
+        },
+    ]
 
 
 def test_config_format(dir_config):
-    assert dir_config.secrets.c_format() == "{'password': 'password', " \
-                                            "'user': 'username'}"
+    assert (
+        dir_config.secrets.c_format() == "{'password': 'password', "
+        "'user': 'username'}"
+    )
     settings_pformat = """{ 'array_of_objects': [ {'id': 1, 'name': 'obj1'},
                         {'id': 2, 'name': 'obj2'},
                         {'id': 3, 'name': 'obj3'}],
@@ -186,42 +198,58 @@ def test_config_format(dir_config):
     assert dir_config.settings.c_format() == settings_pformat
 
 
-@pytest.mark.parametrize('schema,do_raise,result', [
-    ({}, False, True),
-    (True, False, True),
-    ({
-         "type": "object",
-         "properties": {
-             "some_int": {"type": "integer"},
-             "some_bool": {"type": "boolean"},
-             "some_string": {"type": "string"},
-             "some_array": {"type": "array"},
-             "some_none": {"type": "null"},
-             "some_nested_dict": {"type": "object"},
-             "some_array_of_objects": {
-                 "type": "array", "items": {"type": "object"}
-             },
-         }
-     }, False, True),
-    ({
-         "type": "object",
-         "properties": {
-             "some_int": {"type": "string"},
-             "some_bool": {"type": "boolean"},
-             "some_string": {"type": "string"},
-         }
-     }, False, False),
-    ({
-         "type": "object",
-         "properties": {
-             "some_int": {"type": "string"},
-             "some_bool": {"type": "boolean"},
-             "some_string": {"type": "string"},
-         }
-     }, True, False),
-    (False, False, False),
-    (False, True, False),
-])
+@pytest.mark.parametrize(
+    "schema,do_raise,result",
+    [
+        ({}, False, True),
+        (True, False, True),
+        (
+            {
+                "type": "object",
+                "properties": {
+                    "some_int": {"type": "integer"},
+                    "some_bool": {"type": "boolean"},
+                    "some_string": {"type": "string"},
+                    "some_array": {"type": "array"},
+                    "some_none": {"type": "null"},
+                    "some_nested_dict": {"type": "object"},
+                    "some_array_of_objects": {
+                        "type": "array",
+                        "items": {"type": "object"},
+                    },
+                },
+            },
+            False,
+            True,
+        ),
+        (
+            {
+                "type": "object",
+                "properties": {
+                    "some_int": {"type": "string"},
+                    "some_bool": {"type": "boolean"},
+                    "some_string": {"type": "string"},
+                },
+            },
+            False,
+            False,
+        ),
+        (
+            {
+                "type": "object",
+                "properties": {
+                    "some_int": {"type": "string"},
+                    "some_bool": {"type": "boolean"},
+                    "some_string": {"type": "string"},
+                },
+            },
+            True,
+            False,
+        ),
+        (False, False, False),
+        (False, True, False),
+    ],
+)
 def test_validation(file_config, schema, do_raise, result):
     if do_raise:
         with pytest.raises(ValidationError):
@@ -244,7 +272,7 @@ def test_keys(dir_config):
 
 
 def test_iteration(dir_config):
-    expected_keys = ['empty', 'projects', 'secrets', 'settings']
+    expected_keys = ["empty", "projects", "secrets", "settings"]
     for actual, expected in zip(dir_config, expected_keys):
         assert actual == expected
 
@@ -256,30 +284,34 @@ def test_hash(dir_config):
 
 
 def test_config_set(dir_config):
-    dir_config.set('new_key', 'new_value')
-    assert dir_config.new_key == 'new_value'
+    dir_config.set("new_key", "new_value")
+    assert dir_config.new_key == "new_value"
 
-    dir_config.set('array_key', ['a', 'b', 'c'])
-    assert dir_config.array_key == ['a', 'b', 'c']
+    dir_config.set("array_key", ["a", "b", "c"])
+    assert dir_config.array_key == ["a", "b", "c"]
 
-    dir_config.secrets.set('expire_days', 5)
+    dir_config.secrets.set("expire_days", 5)
     assert dir_config.secrets.expire_days == 5
 
-    dir_config.empty.set('data', {'days': 5, 'weeks': 3, 't': {'n': 'n'}})
-    assert dir_config.empty.data == {'days': 5, 'weeks': 3, 't': {'n': 'n'}}
+    dir_config.empty.set("data", {"days": 5, "weeks": 3, "t": {"n": "n"}})
+    assert dir_config.empty.data == {"days": 5, "weeks": 3, "t": {"n": "n"}}
     assert dir_config.empty.data.days == 5
-    assert dir_config.empty.data.t.n == 'n'
+    assert dir_config.empty.data.t.n == "n"
 
-    dir_config.settings.some_nested_dict.set('dbname', 'test')
-    assert dir_config.settings.some_nested_dict.dbname == 'test'
+    dir_config.settings.some_nested_dict.set("dbname", "test")
+    assert dir_config.settings.some_nested_dict.dbname == "test"
 
     with pytest.raises(ConfigException):
-        dir_config.projects.set('new_item', {'a': 'b'})
+        dir_config.projects.set("new_item", {"a": "b"})
 
 
 def test_load_from_obj():
-    file_path = pathlib.Path(__file__).parent / 'fixtures' / 'valid_conf' / \
-           'settings.json'
+    file_path = (
+        pathlib.Path(__file__).parent
+        / "fixtures"
+        / "valid_conf"
+        / "settings.json"
+    )
     python_obj = json.loads(file_path.read_text())
     assert isinstance(python_obj, dict)
     config = Config()
@@ -287,16 +319,16 @@ def test_load_from_obj():
 
     assert config.some_int == 13
     assert config.some_bool is True
-    assert config.some_string == 'string_value'
+    assert config.some_string == "string_value"
     assert config.some_array == [13, "string", False]
     assert config.some_none is None
-    assert config.some_nested_dict == {'port': 5432, 'host': 'localhost'}
+    assert config.some_nested_dict == {"port": 5432, "host": "localhost"}
     assert config.some_nested_dict.port == 5432
-    assert config.some_nested_dict.host == 'localhost'
+    assert config.some_nested_dict.host == "localhost"
     assert config.array_of_objects == [
         {"id": 1, "name": "obj1"},
         {"id": 2, "name": "obj2"},
-        {"id": 3, "name": "obj3"}
+        {"id": 3, "name": "obj3"},
     ]
 
 
@@ -304,9 +336,30 @@ def test_broken_json_load():
     config = Config()
 
     expected_error_message = re.escape(
-        "Error while loading secrets from file {}: JSONDecodeError, Expecting "
-        "property name enclosed in double quotes: line 4 column 1 "
-        "(char 44)".format(INVALID_CONF_PATH / 'wrong_json.json')
+        "Error while loading secrets from file {}: JSONDecodeError".format(
+            INVALID_CONF_PATH / "wrong_json.json"
+        )
     )
     with pytest.raises(ConfigLoadException, match=expected_error_message):
         config.load(INVALID_CONF_PATH)
+
+
+@pytest.mark.parametrize(
+    "data_1, data_2, equal",
+    [
+        ({}, {}, True),
+        (ConfigData({}), {}, True),
+        ({}, {"a": "b"}, False),
+        (ConfigData({"a": "b"}), {"a": "b"}, True),
+        ({"a": "b"}, ConfigData({"a": "b"}), True),
+    ],
+    ids=[
+        "empty",
+        "empty_config_data",
+        "empty_vs_non_empty",
+        "config_data",
+        "non_empty_vs_config_data",
+    ],
+)
+def test__eq_(data_1, data_2, equal):
+    assert (data_1 == data_2) is equal

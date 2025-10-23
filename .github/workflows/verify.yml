@@ -1,0 +1,44 @@
+name: Verify project
+
+on:
+  push:
+    paths:
+      - "**.py"
+      - ".github/workflows/verify.yml"
+  pull_request:
+    branches:
+      - master
+      - dev
+
+jobs:
+  build:
+    name: Test and lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.10"
+          - "3.11"
+          - "3.12"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install the project
+        run: uv sync --all-extras --dev
+
+      - name: Run linter
+        run: uv run ruff check ./confj
+
+      - name: Run formatter
+        run: uv run ruff format --check ./confj
+
+      - name: Run tests
+        run: uv run pytest tests

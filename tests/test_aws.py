@@ -3,14 +3,15 @@ import os
 from unittest.mock import patch
 
 import boto3
-from botocore.stub import Stubber, ANY
 import pytest
+from botocore.stub import ANY, Stubber
 
 from confj import Config
 
 
 @pytest.fixture()
 def sm_stub():
+    os.environ["AWS_ENDPOINT_URL"] = "http://localhost:4566"
     if os.getenv("AWS_DEFAULT_REGION") is None:
         os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
     sm_client = boto3.client("secretsmanager")
@@ -22,16 +23,16 @@ def sm_stub():
 
 def test_load_aws_secrets_manager(sm_stub):
     response = {
-        'ARN': 'arn:aws:secretsmanager:us-east-1:88897673:my-secret',
-        'Name': 'string',
-        'VersionId': '3/L4kqtJlcpXroDTDmJ+rmSpXd3dIbrHY+MTRCxf3vjVBH40Nr8X8gdR'
-                     'QBpUMLUo',
-        'SecretBinary': b'bytes',
-        'SecretString': '{"key": "value"}',
-        'VersionStages': [
-            'string',
+        "ARN": "arn:aws:secretsmanager:us-east-1:88897673:my-secret",
+        "Name": "string",
+        "VersionId": "3/L4kqtJlcpXroDTDmJ+rmSpXd3dIbrHY+MTRCxf3vjVBH40Nr8X8gdR"
+        "QBpUMLUo",
+        "SecretBinary": b"bytes",
+        "SecretString": '{"key": "value"}',
+        "VersionStages": [
+            "string",
         ],
-        'CreatedDate': datetime.datetime.now()
+        "CreatedDate": datetime.datetime.now(),
     }
     expected_params = {"SecretId": ANY}
     sm_stub.add_response("get_secret_value", response, expected_params)

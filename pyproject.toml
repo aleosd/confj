@@ -1,0 +1,79 @@
+[build-system]
+requires = ["hatchling"]  # Build dependency
+build-backend = "hatchling.build"  # Backend entry point
+
+[project]
+name = "confj"
+description = "Configration management from json files"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+dynamic = ["version"]
+license = "MIT"
+license-files = ["LICEN[CS]E.*"]
+authors = [
+    { name = "Alex Osadchuk", email = "osdalex@gmail.com" },
+]
+keywords = [
+    "config",
+    "json",
+    "configuration",
+]
+classifiers=[
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Build Tools",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: CPython",
+]
+
+[project.urls]
+Homepage = "https://github.com/aleosd/confj"
+"Bug Reports" = "https://github.com/aleosd/confj/issues"
+
+[project.optional-dependencies]
+validation = [
+    "jsonschema>=4.23.0",
+]
+aws = [
+    "boto3>=1.36.19",
+]
+
+[dependency-groups]
+dev = [
+    "boto3-stubs[secretsmanager]>=1.36.21",
+    "coverage>=7.6.12",
+    "moto>=5.0.28",
+    "pyright>=1.1.394",
+    "pytest>=8.3.4",
+    "ruff>=0.9.6",
+]
+
+[tool.ruff]
+line-length = 80
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.hatch.version]
+path = "confj/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "confj",
+]
+
+[tool.hatch.build.targets.wheels]
+include = [
+    "confj",
+]
+
+[tool.pyright]
+include = ["confj"]
